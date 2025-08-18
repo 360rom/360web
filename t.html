@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>360手机资源下载</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* 基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            color: #333;
+            scroll-behavior: smooth; /* 平滑滚动 */
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        /* 背景图 */
+        .bg-container {
+            position: fixed;
+            inset: 0;
+            z-index: -10;
+        }
+
+        .bg-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.2;
+        }
+
+        /* 页面标题 */
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: bold;
+            color: #222;
+            margin-bottom: 0.75rem;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.125rem;
+        }
+
+        /* 提示框 */
+        .alert-box {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .alert-icon {
+            color: #f59e0b;
+            margin-top: 0.25rem;
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+
+        .alert-text {
+            color: #4b5563;
+        }
+
+        .alert-text strong {
+            font-weight: 600;
+        }
+
+        /* 章节卡片 */
+        .section-card {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .section-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 章节标题与操作按钮 */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #e60012;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-right: 0.5rem;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: #4b5563;
+            cursor: pointer;
+            padding: 0.35rem 0.75rem;
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        .action-btn:hover {
+            background-color: #f3f4f6;
+            color: #1d4ed8;
+        }
+
+        .action-btn.download {
+            color: #059669;
+        }
+
+        .action-btn.cloud {
+            color: #2563eb;
+        }
+
+        .action-btn.info {
+            color: #f59e0b;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 1.25rem;
+            transition: transform 0.3s ease;
+        }
+
+        /* 资源链接列表 */
+        .resource-list {
+            list-style: none;
+            transition: max-height 0.5s ease, opacity 0.3s ease;
+            max-height: 2000px;
+            opacity: 1;
+        }
+
+        .resource-list.collapsed {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+
+        .resource-item {
+            margin-bottom: 0.75rem;
+        }
+
+        .resource-link {
+            color: #000; /* 子列表文字统一为黑色 */
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.2s ease;
+        }
+
+        .resource-link:hover {
+            color: #1d4ed8; /* 悬停时变为蓝色 */
+            text-decoration: none;
+        }
+
+        /* 页脚 */
+        footer {
+            text-align: center;
+            color: #666;
+            padding: 1.5rem 0;
+            margin-top: 3rem;
+            border-top: 1px solid #d1d5db;
+        }
+
+        .copyright {
+            margin-bottom: 0.5rem;
+        }
+
+        .disclaimer {
+            font-size: 0.875rem;
+        }
+
+        /* 右下角功能按钮 */
+        .fixed-actions {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            z-index: 900;
+        }
+
+        .fixed-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: #e60012;
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.2s ease;
+        }
+
+        .fixed-btn:hover {
+            background-color: #c30010;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .qr-code-btn {
+            position: relative;
+        }
+
+        /* 调整二维码位置到按钮左边 */
+        .qr-code {
+            position: absolute;
+            bottom: 0;
+            right: 55px; /* 显示在按钮左边 */
+            width: 160px;
+            height: 160px;
+            background-color: white;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: none;
+        }
+
+        .qr-code.active {
+            display: block;
+        }
+
+        .qr-code img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem 0.5rem;
+            }
+            
+            .section-card {
+                padding: 1rem;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+            
+            .section-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .fixed-actions {
+                bottom: 1rem;
+                right: 1rem;
+            }
+
+            .fixed-btn {
+                width: 42px;
+                height: 42px;
+                font-size: 1rem;
+            }
+
+            .qr-code {
+                width: 140px;
+                height: 140px;
+                right: 50px; /* 移动设备上也保持在左边 */
+            }
+        }
+
+        /* 自定义弹窗样式 */
+        .custom-alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            text-align: center;
+            min-width: 300px;
+            max-width: 90%;
+            transition: opacity 0.3s ease;
+        }
+
+        .alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            transition: opacity 0.3s ease;
+        }
+
+        /* 信息弹窗 */
+        .info-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            max-width: 500px;
+            width: 90%;
+            display: none;
+        }
+
+        .info-modal.active {
+            display: block;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .modal-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #e60012;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-body {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-footer {
+            text-align: right;
+        }
+
+        .modal-btn {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .modal-btn:hover {
+            background-color: #1d4ed8;
+        }
+
+        /* 页面锚点 */
+        #page-top {
+            position: absolute;
+            top: 0;
+        }
+
+        #page-bottom {
+            position: absolute;
+            bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- 页面锚点 -->
+    <div id="page-top"></div>
+    
+    <!-- 背景图 -->
+    <div class="bg-container">
+        <img src="https://picsum.photos/id/1/1920/1080" alt="背景图片" class="bg-image">
+    </div>
+
+    <!-- 页面容器 -->
+    <div class="container">
+        <!-- 页面标题 -->
+        <header>
+            <h1>360手机资源汇总</h1>
+            <p class="subtitle">包含各型号刷机包、工具及相关软件下载</p>
+        </header>
+
+        <!-- 云盘码提示 -->
+        <div class="alert-box">
+            <i class="fas fa-info-circle alert-icon"></i>
+            <div class="alert-text">
+                <p><strong>云盘码提示：</strong>本站所有资源解压密码统一为：www.360shouji.com</p>
+            </div>
+        </div>
+
+        <!-- N4S 系列 -->
+        <section class="section-card">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-mobile-alt"></i>360手机 N4S 系列
+                </h2>
+                <div class="section-actions">
+                    <button class="action-btn download" data-series="n4s">
+                        <i class="fas fa-download"></i>下载
+                    </button>
+                    <button class="action-btn cloud" data-series="n4s">
+                        <i class="fas fa-cloud"></i>云盘
+                    </button>
+                    <button class="action-btn info" data-series="n4s" data-info="360手机N4S系列发布于2016年，包括骁龙版和联发科版两个型号，搭载大容量电池，是当时颇受欢迎的中端机型。">
+                        <i class="fas fa-info-circle"></i>说明
+                    </button>
+                    <button class="toggle-btn" data-target="n4s-list">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                </div>
+            </div>
+            <ul class="resource-list" id="n4s-list">
+                <li class="resource-item"><a href="#" class="resource-link">360手机N4S骁龙版 线刷包 官方原版</a></li>
+                <li class="resource-item"><a href="#" class="resource-link">360手机N4S联发科版 线刷包 官方原版</a></li>
+                <li class="resource-item"><a href="#" class="resource-link">360手机N4S 第三方TWRP Recovery 3.0.2</a></li>
+                <li class="resource-item"><a href="#" class="resource-link">360手机N4S 官方原版Recovery</a></li>
+                <li class="resource-item"><a href="#" class="resource-link">360手机N4S ROOT工具 超级SU</a></li>
+            </ul>
+        </section>
+
+        <!-- N5 系列 -->
+        <section class="section-card">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-mobile-alt"></i>360手机 N5 系列
+                </h2>
+                <div class="section-actions">
+                    <button class="action-btn download" data-series="n5">
+                        <i class="fas fa-download"></i>下载
+                    </button>
+                    <button class="action-btn cloud" data-series="n5">
+                        <i class="fas fa-cloud"></i>云盘
+                    </button>
+                    <button class="action-btn info" data-series="n5" data-info="360手机N5系列发布于2017年，搭载骁龙653处理器，配备6GB大内存，性能在当时中端机型中表现出色。">
+                        <i class="fas fa-info-circle"></i>说明
+                    </button>
+                    <button class="toggle-btn" data-target="n5-list">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                </div>
+            </div>
+            <ul class="resource-list" id="n5-list">
+                <li class="resource-item"><a href="#" class="resource-link">360手机N5 线刷包 官方原版 116版本</a></li>
+                <li class="resource-item"><a href="#" class="resource-link">360手机N5 线刷包 官方原版 118版本</a></li>
+                <li class="resource-item"><a href="#" class="resource-link">360手机N5 第三方TWRP Recovery 3.1.1</a></li>
+                <li class="resource-item"><a href="#" class="resource-link">360手机N5 官方原版Recovery</a></li>
+                <li class="resource-item"><a href="#" class="resource-link">360手机N5 ROOT工具 超级SU</a></li>
+            </ul>
+        </section>
+
+        <!-- N6 系列 -->
+        <section class="section-card">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-mobile-alt"></i>360手机 N6 系列
+                </h2>
+                <div class="section-actions">
+                    <button class="action-btn download" data-series="n6">
+                        <i class="fas fa-download"></i>下载
+                    </button>
+                    <button class="action-btn cloud" data-series="n6">
+                        <i class="fas fa-cloud"></i>云盘
+                    </button>
+                    <button class="action-btn info" data-series="n6" data-info="360手机N6系列包括N6、N6 Pro和N6 Lite三款机型，发布于2017年底，搭载骁龙630/660处理器，主打长续航和高性价比。">
+                        <i class="fas fa-info-circle"></i>说明
+                    </button>
+                    <button class="toggle-btn" data-target="n6-list">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                </div>
+            </div>
+            <ul class="resource-list" id="n6-list">
+                <li class="resource-item"><a href="#" class="resource-link">360手机N6 线刷包 官方原版 V113</a></li>
+                <li class="resource-item"><a href="#" class="resource-link">360手机N6 Pro 线刷包 官方原版 V107</a></li>
+                <li class="resource-item"><a href="#" class="resource-link">360手机N6 Lite 线刷包 官方原版 V110</a></li>
+                <li class="resource-item"><a href="#" class="resource-link">360手机N6 系列 第三方TWRP Recovery</a></li>
+            </ul>
+        </section>
+
+        <!-- 工具类 -->
+        <section class="section-card">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-tools"></i>工具类
+                </h2>
+                <div class="section-actions">
+                    <button class="action-btn download" data-series="tools">
+                        <i class="fas fa-download"></i>下载
+                    </button>
+                    <button class="action-btn cloud" data-series="tools">
+                        <i class="fas fa-cloud"></i>云盘
+                    </button>
+                    <button class="action-btn info" data-series="tools" data-info="刷机所需的各种工具集合，包括线刷工具、驱动程序、ADB工具等，适用于360全系列手机。">
+                        <i class="fas fa-info-circle"></i>说明
+                    </button>
+                    <button class="toggle-btn" data-target="tools-list">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                </div>
+            </div>
+            <ul class="resource-list" id="tools-list">
+                <li class="resource-item"><a href="#" class="resource-link">QPST 工具 2.7.474 最新版</a></li>
+                <li class="resource-item"><a href="#" class="resource-link">MiFlash 线刷工具 2016最新版</a></li>
+                <li class="resource-item"><a href="#" class="resource-link">360手机 驱动 官方版</a></li>
+                <li class="resource-item"><a href="#" class="resource-link">ADB 工具包 最新版</a></li>
+                <li class="resource-item"><a href="#" class="resource-link">Fastboot 工具包 完整版</a></li>
+            </ul>
+        </section>
+
+        <!-- 页脚 -->
+        <footer>
+            <p class="copyright">© 2023 360手机资源站 - 本站资源仅供学习交流使用</p>
+            <p class="disclaimer">如有侵权请联系我们删除</p>
+            <div id="page-bottom"></div>
+        </footer>
+    </div>
+
+    <!-- 右下角功能按钮 -->
+    <div class="fixed-actions">
+        <button class="fixed-btn qr-code-btn" id="qrCodeBtn" title="微信公众号二维码">
+            <i class="fas fa-qrcode"></i>
+            <div class="qr-code" id="qrCode">
+                <img src="https://picsum.photos/id/20/150/150" alt="360手机资源站微信公众号二维码">
+            </div>
+        </button>
+        <button class="fixed-btn" id="scrollToTop" title="返回顶部">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        <button class="fixed-btn" id="scrollToBottom" title="滚动到底部">
+            <i class="fas fa-arrow-down"></i>
+        </button>
+    </div>
+
+    <!-- 自定义弹窗 -->
+    <div id="alertOverlay" class="alert-overlay" style="opacity: 0; pointer-events: none;"></div>
+    <div id="customAlert" class="custom-alert" style="opacity: 0; pointer-events: none;">
+        <p>欢迎访问360手机资源站！</p>
+        <p>本站所有资源解压密码统一为：www.360shouji.com</p>
+    </div>
+
+    <!-- 信息弹窗 -->
+    <div class="info-modal" id="infoModal">
+        <div class="modal-header">
+            <h3 class="modal-title" id="modalTitle">系列说明</h3>
+            <button class="close-modal" id="closeModal">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+            <!-- 说明内容将通过JS填充 -->
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn" id="confirmModal">确定</button>
+        </div>
+    </div>
+
+    <script>
+        // 控制弹窗是否开启，默认关闭(false)
+        const showInitialAlert = false;
+        
+        // 显示初始弹窗
+        function showAlert() {
+            if (!showInitialAlert) return; // 如果设置为false则不显示
+            
+            const overlay = document.getElementById('alertOverlay');
+            const alertBox = document.getElementById('customAlert');
+            
+            overlay.style.opacity = '1';
+            overlay.style.pointerEvents = 'auto';
+            alertBox.style.opacity = '1';
+            alertBox.style.pointerEvents = 'auto';
+            
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+                overlay.style.pointerEvents = 'none';
+                alertBox.style.opacity = '0';
+                alertBox.style.pointerEvents = 'none';
+            }, 3000);
+        }
+        
+        // 折叠/展开功能
+        function setupToggleButtons() {
+            const toggleButtons = document.querySelectorAll('.toggle-btn');
+            
+            toggleButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.getAttribute('data-target');
+                    const targetList = document.getElementById(targetId);
+                    const icon = button.querySelector('i');
+                    
+                    targetList.classList.toggle('collapsed');
+                    
+                    if (targetList.classList.contains('collapsed')) {
+                        icon.classList.remove('fa-chevron-up');
+                        icon.classList.add('fa-chevron-down');
+                    } else {
+                        icon.classList.remove('fa-chevron-down');
+                        icon.classList.add('fa-chevron-up');
+                    }
+                });
+            });
+        }
+        
+        // 下载按钮功能
+        function setupDownloadButtons() {
+            const downloadButtons = document.querySelectorAll('.action-btn.download');
+            
+            downloadButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const series = button.getAttribute('data-series');
+                    alert(`正在准备${series.toUpperCase()}系列资源的批量下载...`);
+                });
+            });
+        }
+        
+        // 云盘按钮功能
+        function setupCloudButtons() {
+            const cloudButtons = document.querySelectorAll('.action-btn.cloud');
+            
+            cloudButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const series = button.getAttribute('data-series');
+                    alert(`${series.toUpperCase()}系列资源的云盘链接已复制到剪贴板，提取码：8888`);
+                });
+            });
+        }
+        
+        // 说明按钮功能
+        function setupInfoButtons() {
+            const infoButtons = document.querySelectorAll('.action-btn.info');
+            const infoModal = document.getElementById('infoModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            const closeModal = document.getElementById('closeModal');
+            const confirmModal = document.getElementById('confirmModal');
+            
+            function hideModal() {
+                infoModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+            
+            infoButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const series = button.getAttribute('data-series');
+                    const info = button.getAttribute('data-info');
+                    
+                    modalTitle.textContent = `${series.toUpperCase()}系列说明`;
+                    modalBody.textContent = info;
+                    infoModal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                });
+            });
+            
+            closeModal.addEventListener('click', hideModal);
+            confirmModal.addEventListener('click', hideModal);
+            
+            // 点击模态框外部关闭
+            infoModal.addEventListener('click', (e) => {
+                if (e.target === infoModal) {
+                    hideModal();
+                }
+            });
+        }
+        
+        // 右下角功能按钮
+        function setupFixedButtons() {
+            // 置顶按钮
+            const scrollToTopBtn = document.getElementById('scrollToTop');
+            scrollToTopBtn.addEventListener('click', () => {
+                document.getElementById('page-top').scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+            
+            // 置底按钮
+            const scrollToBottomBtn = document.getElementById('scrollToBottom');
+            scrollToBottomBtn.addEventListener('click', () => {
+                document.getElementById('page-bottom').scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+            
+            // 二维码按钮
+            const qrCodeBtn = document.getElementById('qrCodeBtn');
+            const qrCode = document.getElementById('qrCode');
+            
+            qrCodeBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // 防止事件冒泡
+                qrCode.classList.toggle('active');
+            });
+            
+            // 点击页面其他地方关闭二维码
+            document.addEventListener('click', () => {
+                qrCode.classList.remove('active');
+            });
+            
+            // 防止点击二维码内部时关闭
+            qrCode.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('load', () => {
+            showAlert(); // 根据showInitialAlert的值决定是否显示
+            setupToggleButtons();
+            setupDownloadButtons();
+            setupCloudButtons();
+            setupInfoButtons();
+            setupFixedButtons();
+        });
+    </script>
+</body>
+</html>
+    
